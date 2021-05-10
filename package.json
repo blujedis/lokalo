@@ -42,7 +42,7 @@
   },
   "scripts": {
     "init": "node ./.tools/init.js",
-    "doc": "typedoc src/index.ts && touch ./docs/.nojekyll",
+    "docs": "typedoc src/index.ts && touch ./docs/.nojekyll",
     "test": "npm run test:lint && npm run test:unit",
     "test:lint": "eslint \"*/**/*.{ts,js,json}\"",
     "test:unit": "jest",

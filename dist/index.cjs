@@ -40,29 +40,6 @@ function __spreadArray(to, from) {
     return to;
 }
 
-var ENV_LOG_LEVEL = typeof process !== 'undefined' ? process.env['REACT_APP_LOG_LEVEL'] : 'error';
-var LOG_LEVELS = ['log', 'fatal', 'error', 'warn', 'info', 'debug'];
-var STYLES = {
-    inherit: 'color: inherit',
-    dim: 'color: #666',
-    log: 'color: lightslategray',
-    fatal: 'color: gold; background-color: firebrick',
-    error: 'color: firebrick',
-    warn: 'color: gold',
-    info: 'color: deepskyblue',
-    debug: 'color: magenta'
-};
-var DEFAULTS = {
-    type: 'local',
-    maxLines: 10,
-    key: '$uid',
-    keyValue: function () { return Date.now(); },
-    userKey: 'user',
-    level: ENV_LOG_LEVEL,
-    consoleOutput: 'development',
-    styles: __assign({}, STYLES)
-};
-
 /**
  * Creates instance of simple formatter.
  */
@@ -138,6 +115,29 @@ function serializeError(err) {
         result.name = err.name;
     return result;
 }
+
+var ENV_LOG_LEVEL = typeof process !== 'undefined' ? process.env['REACT_APP_LOG_LEVEL'] : 'error';
+var LOG_LEVELS = ['log', 'fatal', 'error', 'warn', 'info', 'debug'];
+var STYLES = {
+    inherit: 'color: inherit',
+    dim: 'color: #666',
+    log: 'color: lightslategray',
+    fatal: 'color: gold; background-color: firebrick',
+    error: 'color: firebrick',
+    warn: 'color: gold',
+    info: 'color: deepskyblue',
+    debug: 'color: magenta'
+};
+var DEFAULTS = {
+    type: 'local',
+    maxLines: 10,
+    key: '$uid',
+    keyValue: function () { return Date.now(); },
+    userKey: 'user',
+    level: ENV_LOG_LEVEL,
+    consoleOutput: 'development',
+    styles: __assign({}, STYLES)
+};
 
 /**
  * Creates a new storage logger instance.
@@ -428,10 +428,11 @@ function createStorageLogger(options, namespaces) {
 /**
  * Default logger instance.
  */
-createStorageLogger({ parent: 'logger', namespace: 'global' });
+var defaultLogger = createStorageLogger({ parent: 'logger', namespace: 'global' });
 
 exports.DEFAULTS = DEFAULTS;
 exports.ENV_LOG_LEVEL = ENV_LOG_LEVEL;
 exports.LOG_LEVELS = LOG_LEVELS;
 exports.STYLES = STYLES;
+exports.defaultLogger = defaultLogger;
 //# sourceMappingURL=index.cjs.map
