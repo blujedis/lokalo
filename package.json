@@ -1,0 +1,71 @@
+{
+  "name": "lokalo",
+  "version": "0.0.1",
+  "description": "",
+  "cdn": "dist/index.umd.js",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "unpkg": "dist/index.umd.js",
+  "module": "dist/index.esm.js",
+  "jsdelivr": "dist/index.umd.js",
+  "umd:main": "dist/index.umd.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.cjs",
+        "default": "./dist/index.js"
+      },
+      "./dist/index.js"
+    ]
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "^15.0.2",
+    "@types/eslint": "^7.2.9",
+    "@types/jest": "^26.0.22",
+    "@typescript-eslint/eslint-plugin": "^4.21.0",
+    "@typescript-eslint/parser": "^4.21.0",
+    "eslint": "^7.24.0",
+    "jest": "^26.6.3",
+    "rollup": "^2.45.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "ts-jest": "^26.5.4",
+    "ts-jest-resolver": "^1.0.0",
+    "tslib": "^2.2.0",
+    "typedoc": "^0.20.35",
+    "typedoc-plugin-markdown": "^3.6.1",
+    "typescript": "^4.2.4"
+  },
+  "scripts": {
+    "init": "node ./.tools/init.js",
+    "doc": "typedoc src/index.ts && touch ./docs/.nojekyll",
+    "test": "npm run test:lint && npm run test:unit",
+    "test:lint": "eslint \"*/**/*.{ts,js,json}\"",
+    "test:unit": "jest",
+    "lint": "eslint \"*/**/*.{ts,js,json}\" --fix",
+    "build": "rollup --config ./rollup.config.js",
+    "prepublishOnly": "npm run doc && npm run build && npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blujedis/lokalo.git"
+  },
+  "keywords": [
+    "localStorage",
+    "sessionStorage",
+    "log",
+    "json"
+  ],
+  "author": {
+    "name": "Blujedis LLC blujedicorp@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/blujedis/lokalo/issues"
+  },
+  "homepage": "https://github.com/blujedis/lokalo#readme"
+}
