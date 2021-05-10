@@ -436,7 +436,7 @@
     exports.ENV_LOG_LEVEL = ENV_LOG_LEVEL;
     exports.LOG_LEVELS = LOG_LEVELS;
     exports.STYLES = STYLES;
-    exports.defaultLogger = defaultLogger;
+    exports.default = defaultLogger;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

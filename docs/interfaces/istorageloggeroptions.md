@@ -29,7 +29,7 @@
 
 • `Optional` **consoleOutput**: ``"development"`` \| ``"always"``
 
-Defined in: [types.ts:12](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L12)
+Defined in: [types.ts:12](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L12)
 
 ___
 
@@ -37,7 +37,7 @@ ___
 
 • `Optional` **key**: K
 
-Defined in: [types.ts:8](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L8)
+Defined in: [types.ts:8](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L8)
 
 ___
 
@@ -51,9 +51,9 @@ ___
 
 **Returns:** *string* \| *number*
 
-Defined in: [types.ts:9](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L9)
+Defined in: [types.ts:9](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L9)
 
-Defined in: [types.ts:9](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L9)
+Defined in: [types.ts:9](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L9)
 
 ___
 
@@ -61,7 +61,7 @@ ___
 
 • `Optional` **level**: *Omit*<``"log"`` \| ``"fatal"`` \| ``"error"`` \| ``"warn"`` \| ``"info"`` \| ``"debug"``, ``"log"``\>
 
-Defined in: [types.ts:11](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L11)
+Defined in: [types.ts:11](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L11)
 
 ___
 
@@ -69,7 +69,7 @@ ___
 
 • `Optional` **maxLines**: *number*
 
-Defined in: [types.ts:7](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L7)
+Defined in: [types.ts:7](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L7)
 
 ___
 
@@ -77,7 +77,7 @@ ___
 
 • **namespace**: *string*
 
-Defined in: [types.ts:6](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L6)
+Defined in: [types.ts:6](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L6)
 
 ___
 
@@ -85,7 +85,7 @@ ___
 
 • `Readonly` **parent**: *string*
 
-Defined in: [types.ts:4](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L4)
+Defined in: [types.ts:4](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L4)
 
 ___
 
@@ -93,7 +93,7 @@ ___
 
 • `Optional` **styles**: *Record*<``"log"`` \| ``"fatal"`` \| ``"error"`` \| ``"warn"`` \| ``"info"`` \| ``"debug"`` \| ``"inherit"`` \| ``"dim"``, string\>
 
-Defined in: [types.ts:13](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L13)
+Defined in: [types.ts:13](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L13)
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 • `Optional` **type**: ``"session"`` \| ``"local"``
 
-Defined in: [types.ts:5](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L5)
+Defined in: [types.ts:5](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L5)
 
 ___
 
@@ -109,4 +109,4 @@ ___
 
 • `Optional` **userKey**: *string*
 
-Defined in: [types.ts:10](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L10)
+Defined in: [types.ts:10](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L10)

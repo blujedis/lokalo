@@ -434,5 +434,5 @@ exports.DEFAULTS = DEFAULTS;
 exports.ENV_LOG_LEVEL = ENV_LOG_LEVEL;
 exports.LOG_LEVELS = LOG_LEVELS;
 exports.STYLES = STYLES;
-exports.defaultLogger = defaultLogger;
+exports.default = defaultLogger;
 //# sourceMappingURL=index.cjs.map

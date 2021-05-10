@@ -25,7 +25,7 @@ Lokalo
 - [ENV\_LOG\_LEVEL](README.md#env_log_level)
 - [LOG\_LEVELS](README.md#log_levels)
 - [STYLES](README.md#styles)
-- [defaultLogger](README.md#defaultlogger)
+- [default](README.md#default)
 
 ## Type aliases
 
@@ -33,7 +33,7 @@ Lokalo
 
 Ƭ **LogLevel**: *typeof* [*LOG\_LEVELS*](README.md#log_levels)[*number*]
 
-Defined in: [types.ts:33](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L33)
+Defined in: [types.ts:33](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L33)
 
 ___
 
@@ -48,7 +48,7 @@ ___
 | `K` | *string* | ``"$uid"`` |
 | `U` | *Record*<string, any\> | *Record*<string, any\> |
 
-Defined in: [types.ts:35](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L35)
 
 ___
 
@@ -56,7 +56,7 @@ ___
 
 Ƭ **StorageLoggerOptions**: *Omit*<[*IStorageLoggerOptions*](interfaces/istorageloggeroptions.md), ``"parent"``\>
 
-Defined in: [types.ts:18](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L18)
+Defined in: [types.ts:18](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L18)
 
 ___
 
@@ -64,7 +64,7 @@ ___
 
 Ƭ **StorageLoggerPayload**: *string* \| *number* \| *boolean* \| Error & { [key: string]: *any*;  } \| *Record*<string, any\>
 
-Defined in: [types.ts:16](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L16)
+Defined in: [types.ts:16](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L16)
 
 ___
 
@@ -72,7 +72,7 @@ ___
 
 Ƭ **Style**: keyof [*Styles*](README.md#styles)
 
-Defined in: [types.ts:39](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L39)
 
 ___
 
@@ -80,7 +80,7 @@ ___
 
 Ƭ **Styles**: *typeof* [*STYLES*](README.md#styles)
 
-Defined in: [types.ts:37](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L37)
 
 ## Variables
 
@@ -109,7 +109,7 @@ Defined in: [types.ts:37](https://github.com/blujedis/lokalo/blob/8d89221/src/ty
 | `type` | ``"local"`` |
 | `userKey` | *string* |
 
-Defined in: [constants.ts:18](https://github.com/blujedis/lokalo/blob/8d89221/src/constants.ts#L18)
+Defined in: [constants.ts:18](https://github.com/blujedis/lokalo/blob/3c1f136/src/constants.ts#L18)
 
 ___
 
@@ -117,7 +117,7 @@ ___
 
 • `Const` **ENV\_LOG\_LEVEL**: *undefined* \| *string*
 
-Defined in: [constants.ts:3](https://github.com/blujedis/lokalo/blob/8d89221/src/constants.ts#L3)
+Defined in: [constants.ts:3](https://github.com/blujedis/lokalo/blob/3c1f136/src/constants.ts#L3)
 
 ___
 
@@ -125,7 +125,7 @@ ___
 
 • `Const` **LOG\_LEVELS**: readonly [``"log"``, ``"fatal"``, ``"error"``, ``"warn"``, ``"info"``, ``"debug"``]
 
-Defined in: [constants.ts:5](https://github.com/blujedis/lokalo/blob/8d89221/src/constants.ts#L5)
+Defined in: [constants.ts:5](https://github.com/blujedis/lokalo/blob/3c1f136/src/constants.ts#L5)
 
 ___
 
@@ -146,13 +146,13 @@ ___
 | `log` | *string* |
 | `warn` | *string* |
 
-Defined in: [constants.ts:7](https://github.com/blujedis/lokalo/blob/8d89221/src/constants.ts#L7)
+Defined in: [constants.ts:7](https://github.com/blujedis/lokalo/blob/3c1f136/src/constants.ts#L7)
 
 ___
 
-### defaultLogger
+### default
 
-• `Const` **defaultLogger**: (`level`: [*LogLevel*](README.md#loglevel), `payload`: [*StorageLoggerPayload*](README.md#storageloggerpayload)) => Logger(`payload`: [*StorageLoggerPayload*](README.md#storageloggerpayload)) => Logger
+• `Const` **default**: (`level`: [*LogLevel*](README.md#loglevel), `payload`: [*StorageLoggerPayload*](README.md#storageloggerpayload)) => Logger(`payload`: [*StorageLoggerPayload*](README.md#storageloggerpayload)) => Logger
 
 Default logger instance.
 
@@ -171,7 +171,7 @@ Logs a payload by log level.
 
 **Returns:** Logger
 
-Defined in: [logger.ts:189](https://github.com/blujedis/lokalo/blob/8d89221/src/logger.ts#L189)
+Defined in: [logger.ts:189](https://github.com/blujedis/lokalo/blob/3c1f136/src/logger.ts#L189)
 
 ▸ (`payload`: [*StorageLoggerPayload*](README.md#storageloggerpayload)): Logger
 
@@ -185,7 +185,7 @@ Logs a payload by default level.
 
 **Returns:** Logger
 
-Defined in: [logger.ts:196](https://github.com/blujedis/lokalo/blob/8d89221/src/logger.ts#L196)
+Defined in: [logger.ts:196](https://github.com/blujedis/lokalo/blob/3c1f136/src/logger.ts#L196)
 
 | Name | Type |
 | :------ | :------ |
@@ -205,4 +205,4 @@ Defined in: [logger.ts:196](https://github.com/blujedis/lokalo/blob/8d89221/src/
 | `size` | () => *number* |
 | `warn` | (`payload`: [*StorageLoggerPayload*](README.md#storageloggerpayload)) => { (level: "log" \| "fatal" \| "error" \| "warn" \| "info" \| "debug", payload: StorageLoggerPayload): ...; (payload: StorageLoggerPayload): ...; ... 14 more ...; purge(lines?: number): void; } |
 
-Defined in: [logger.ts:357](https://github.com/blujedis/lokalo/blob/8d89221/src/logger.ts#L357)
+Defined in: [logger.ts:357](https://github.com/blujedis/lokalo/blob/3c1f136/src/logger.ts#L357)

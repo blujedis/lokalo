@@ -426,5 +426,6 @@ function createStorageLogger(options, namespaces) {
  */
 var defaultLogger = createStorageLogger({ parent: 'logger', namespace: 'global' });
 
-export { DEFAULTS, ENV_LOG_LEVEL, LOG_LEVELS, STYLES, defaultLogger };
+export default defaultLogger;
+export { DEFAULTS, ENV_LOG_LEVEL, LOG_LEVELS, STYLES };
 //# sourceMappingURL=index.esm.js.map

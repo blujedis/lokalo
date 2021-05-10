@@ -28,7 +28,7 @@
 
 • **level**: ``"log"`` \| ``"fatal"`` \| ``"error"`` \| ``"warn"`` \| ``"info"`` \| ``"debug"``
 
-Defined in: [types.ts:21](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L21)
+Defined in: [types.ts:21](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L21)
 
 ___
 
@@ -36,7 +36,7 @@ ___
 
 • **message**: *string*
 
-Defined in: [types.ts:24](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L24)
+Defined in: [types.ts:24](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L24)
 
 ___
 
@@ -44,7 +44,7 @@ ___
 
 • **namespace**: *string*
 
-Defined in: [types.ts:23](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L23)
+Defined in: [types.ts:23](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L23)
 
 ___
 
@@ -52,7 +52,7 @@ ___
 
 • **timestamp**: *string*
 
-Defined in: [types.ts:22](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L22)
+Defined in: [types.ts:22](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L22)
 
 ___
 
@@ -60,4 +60,4 @@ ___
 
 • `Optional` **user**: U
 
-Defined in: [types.ts:25](https://github.com/blujedis/lokalo/blob/8d89221/src/types.ts#L25)
+Defined in: [types.ts:25](https://github.com/blujedis/lokalo/blob/3c1f136/src/types.ts#L25)
