@@ -162,7 +162,6 @@ var STYLES = {
 };
 var DEFAULTS = {
     namespace: 'lokalo',
-    parent: '',
     level: 'error',
     uid: function () { return Date.now(); },
     type: 'local',
@@ -179,18 +178,6 @@ var LokaloStore = /** @class */ (function () {
         this.store = options.type === 'local' ? localStorage : sessionStorage;
         this.options = options;
     }
-    /**
-     * Mutes the output to console only logs.
-     */
-    LokaloStore.prototype.mute = function () {
-        this.options.displayOutput = false;
-    };
-    /**
-    * Unmutes the output to console and displays in console.
-    */
-    LokaloStore.prototype.unmute = function () {
-        this.options.displayOutput = true;
-    };
     /**
      * Gets namespaced value by key.
      *
@@ -220,11 +207,70 @@ var LokaloStore = /** @class */ (function () {
         this.store.removeItem(this.namespace);
     };
     /**
+     * Checks the maximum lines size.
+     */
+    LokaloStore.prototype.checkMaxLines = function () {
+        if (!this.options.maxLines)
+            return;
+        var count = this.size();
+        if (count === this.options.maxLines) {
+            this.remove();
+        }
+        else if (count > this.options.maxLines) {
+            var adj = count - this.options.maxLines;
+            this.remove(adj);
+        }
+    };
+    /**
+     * Queues the payload.
+     *
+     * @param payload the payload to be queued.
+     */
+    LokaloStore.prototype.queuePayload = function (payload) {
+        var _a, _b;
+        this.queue.push(payload);
+        this.resetQueue();
+        if (!this.options.displayOutput)
+            return;
+        var tsKey = (_b = (_a = getTimestamp().split('T')) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.slice(0, -1).trim(); // time only.
+        var truncMessage = payload.message.slice(0, 20);
+        var groupLabel = formatter(this.options.styles)
+            .add(payload.level, tsKey)
+            .unstyled(this.namespace)
+            .unstyled('-')
+            .add('dim', truncMessage)
+            .toString();
+        console.groupCollapsed.apply(console, __spreadArray([], __read(groupLabel)));
+        console.log(payload);
+        console.groupEnd();
+    };
+    /**
+     * Writes the payload to storage by namespace.
+     *
+     * @param payload the payload to be written.
+     */
+    LokaloStore.prototype.writePayload = function (payload) {
+        var rows = __spreadArray(__spreadArray([], __read(this.getNamespace())), [payload]);
+        this.setNamespace(rows);
+    };
+    /**
+    * Mutes the output to console only logs.
+    */
+    LokaloStore.prototype.mute = function () {
+        this.options.displayOutput = false;
+    };
+    /**
+    * Unmutes the output to console and displays in console.
+    */
+    LokaloStore.prototype.unmute = function () {
+        this.options.displayOutput = true;
+    };
+    /**
      * Deletes rows for the given namespace.
      *
      * @param count the number of rows to delete if not 1.
      */
-    LokaloStore.prototype.removeRows = function (count) {
+    LokaloStore.prototype.remove = function (count) {
         if (count === void 0) { count = 1; }
         var rows = this.getNamespace();
         rows = rows.sort(function (a, b) {
@@ -242,21 +288,6 @@ var LokaloStore = /** @class */ (function () {
      */
     LokaloStore.prototype.size = function () {
         return this.getNamespace().length;
-    };
-    /**
-     * Checks the maximum lines size.
-     */
-    LokaloStore.prototype.checkMaxLines = function () {
-        if (!this.options.maxLines)
-            return;
-        var count = this.size();
-        if (count === this.options.maxLines) {
-            this.removeRows();
-        }
-        else if (count > this.options.maxLines) {
-            var adj = count - this.options.maxLines;
-            this.removeRows(adj);
-        }
     };
     /**
      * Returns rows for the active namespace.
@@ -285,34 +316,7 @@ var LokaloStore = /** @class */ (function () {
      */
     LokaloStore.prototype.purge = function (lines) {
         if (lines === void 0) { lines = 1; }
-        return this.removeRows(lines);
-    };
-    LokaloStore.prototype.queuePayload = function (payload) {
-        var _a, _b;
-        this.queue.push(payload);
-        this.resetQueue();
-        if (!this.options.displayOutput)
-            return;
-        var tsKey = (_b = (_a = getTimestamp().split('T')) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.slice(0, -1).trim(); // time only.
-        var truncMessage = payload.message.slice(0, 20);
-        var groupLabel = formatter(this.options.styles)
-            .add(payload.level, tsKey)
-            .unstyled(this.namespace)
-            .unstyled('-')
-            .add('dim', truncMessage)
-            .toString();
-        console.groupCollapsed.apply(console, __spreadArray([], __read(groupLabel)));
-        console.log(payload);
-        console.groupEnd();
-    };
-    /**
-     * Writes the payload to storage by namespace.
-     *
-     * @param payload the payload to be written.
-     */
-    LokaloStore.prototype.writePayload = function (payload) {
-        var rows = __spreadArray(__spreadArray([], __read(this.getNamespace())), [payload]);
-        this.setNamespace(rows);
+        return this.remove(lines);
     };
     /**
     * Clears the log queue.
@@ -348,7 +352,7 @@ var LokaloStore = /** @class */ (function () {
 var LokaloLogger = /** @class */ (function (_super) {
     __extends(LokaloLogger, _super);
     function LokaloLogger(options, parent) {
-        var _this = _super.call(this, __assign(__assign({}, DEFAULTS), options)) || this;
+        var _this = _super.call(this, __assign(__assign(__assign({}, DEFAULTS), { parent: '' }), options)) || this;
         _this.parent = parent;
         _this.options = __assign(__assign({}, DEFAULTS), options);
         _this.checkMaxLines();
@@ -450,30 +454,176 @@ var LokaloLogger = /** @class */ (function (_super) {
     return LokaloLogger;
 }(LokaloStore));
 
+var isObj$1 = value => {
+	const type = typeof value;
+	return value !== null && (type === 'object' || type === 'function');
+};
+
+const isObj = isObj$1;
+
+const disallowedKeys = new Set([
+	'__proto__',
+	'prototype',
+	'constructor'
+]);
+
+const isValidPath = pathSegments => !pathSegments.some(segment => disallowedKeys.has(segment));
+
+function getPathSegments(path) {
+	const pathArray = path.split('.');
+	const parts = [];
+
+	for (let i = 0; i < pathArray.length; i++) {
+		let p = pathArray[i];
+
+		while (p[p.length - 1] === '\\' && pathArray[i + 1] !== undefined) {
+			p = p.slice(0, -1) + '.';
+			p += pathArray[++i];
+		}
+
+		parts.push(p);
+	}
+
+	if (!isValidPath(parts)) {
+		return [];
+	}
+
+	return parts;
+}
+
+var dotProp = {
+	get(object, path, value) {
+		if (!isObj(object) || typeof path !== 'string') {
+			return value === undefined ? object : value;
+		}
+
+		const pathArray = getPathSegments(path);
+		if (pathArray.length === 0) {
+			return;
+		}
+
+		for (let i = 0; i < pathArray.length; i++) {
+			object = object[pathArray[i]];
+
+			if (object === undefined || object === null) {
+				// `object` is either `undefined` or `null` so we want to stop the loop, and
+				// if this is not the last bit of the path, and
+				// if it did't return `undefined`
+				// it would return `null` if `object` is `null`
+				// but we want `get({foo: null}, 'foo.bar')` to equal `undefined`, or the supplied value, not `null`
+				if (i !== pathArray.length - 1) {
+					return value;
+				}
+
+				break;
+			}
+		}
+
+		return object === undefined ? value : object;
+	},
+
+	set(object, path, value) {
+		if (!isObj(object) || typeof path !== 'string') {
+			return object;
+		}
+
+		const root = object;
+		const pathArray = getPathSegments(path);
+
+		for (let i = 0; i < pathArray.length; i++) {
+			const p = pathArray[i];
+
+			if (!isObj(object[p])) {
+				object[p] = {};
+			}
+
+			if (i === pathArray.length - 1) {
+				object[p] = value;
+			}
+
+			object = object[p];
+		}
+
+		return root;
+	},
+
+	delete(object, path) {
+		if (!isObj(object) || typeof path !== 'string') {
+			return false;
+		}
+
+		const pathArray = getPathSegments(path);
+
+		for (let i = 0; i < pathArray.length; i++) {
+			const p = pathArray[i];
+
+			if (i === pathArray.length - 1) {
+				delete object[p];
+				return true;
+			}
+
+			object = object[p];
+
+			if (!isObj(object)) {
+				return false;
+			}
+		}
+	},
+
+	has(object, path) {
+		if (!isObj(object) || typeof path !== 'string') {
+			return false;
+		}
+
+		const pathArray = getPathSegments(path);
+		if (pathArray.length === 0) {
+			return false;
+		}
+
+		// eslint-disable-next-line unicorn/no-for-loop
+		for (let i = 0; i < pathArray.length; i++) {
+			if (isObj(object)) {
+				if (!(pathArray[i] in object)) {
+					return false;
+				}
+
+				object = object[pathArray[i]];
+			} else {
+				return false;
+			}
+		}
+
+		return true;
+	}
+};
+
 var Lokalo = /** @class */ (function (_super) {
     __extends(Lokalo, _super);
-    function Lokalo() {
-        var _this = _super.call(this, { namespace: 'lokalo', parent: '' }) || this;
+    function Lokalo(options) {
+        var _this = _super.call(this, typeof options === 'string' ? { namespace: options } : options) || this;
         _this.loggers = new Set();
         _this.loggers.add(_this);
         return _this;
     }
-    Object.defineProperty(Lokalo, "singleton", {
-        get: function () {
-            if (!Lokalo.__instance)
-                Lokalo.__instance = new this();
-            return Lokalo.__instance;
-        },
-        enumerable: false,
-        configurable: true
-    });
     Lokalo.prototype.clearAll = function () {
         var loggers = __spreadArray([], __read(this.loggers.values()));
         loggers.forEach(function (logger) { return logger.clear(); });
     };
+    /**
+     * Creates single object from all loggers/namespaces.
+     */
+    Lokalo.prototype.toObject = function () {
+        var obj = {};
+        __spreadArray([], __read(this.loggers.values())).forEach(function (logger) {
+            var namespace = logger.namespace;
+            var rows = logger.rows();
+            dotProp.set(obj, namespace, rows);
+        });
+        return obj;
+    };
     return Lokalo;
 }(LokaloLogger));
-var defaultInstance = Lokalo.singleton;
+var defaultInstance = new Lokalo({ namespace: 'lokalo' });
 
 exports.DEFAULTS = DEFAULTS;
 exports.LOG_LEVELS = LOG_LEVELS;

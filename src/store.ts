@@ -17,8 +17,92 @@ export class LokaloStore {
   }
 
   /**
-   * Mutes the output to console only logs.
+   * Gets namespaced value by key.
+   * 
    */
+  protected getNamespace(): ILokaloEvent[] {
+    const obj = this.store.getItem(this.namespace);
+    return obj && obj.length ? JSON.parse(obj) : [];
+  }
+
+  /**
+   * Sets a namespace's value.
+   * 
+   * @param data the value to set to the namespace.
+   */
+  protected setNamespace(data: ILokaloEvent | ILokaloEvent[]) {
+    if (!data) return;
+    if (!Array.isArray(data))
+      data = [data];
+    const str = JSON.stringify(data);
+    this.store.setItem(this.namespace, str);
+  }
+
+  /**
+   * Removes from storage by namespace.
+   */
+  protected removeNamespace() {
+    this.clearQueue();
+    this.store.removeItem(this.namespace);
+  }
+
+  /**
+   * Checks the maximum lines size.
+   */
+  protected checkMaxLines() {
+    if (!this.options.maxLines) return;
+    const count = this.size();
+    if (count === this.options.maxLines) {
+      this.remove();
+    }
+    else if (count > this.options.maxLines) {
+      const adj = count - this.options.maxLines;
+      this.remove(adj);
+    }
+  }
+
+  /**
+   * Queues the payload.
+   * 
+   * @param payload the payload to be queued.
+   */
+  protected queuePayload(payload: ILokaloEvent) {
+
+    this.queue.push(payload);
+    this.resetQueue();
+
+    if (!this.options.displayOutput)
+      return;
+
+    const tsKey = getTimestamp().split('T')?.pop()?.slice(0, -1).trim(); // time only.
+    const truncMessage = payload.message.slice(0, 20);
+
+    const groupLabel = formatter(this.options.styles)
+      .add(payload.level as Style, tsKey)
+      .unstyled(this.namespace)
+      .unstyled('-')
+      .add('dim', truncMessage)
+      .toString();
+
+    console.groupCollapsed(...groupLabel);
+    console.log(payload);
+    console.groupEnd();
+
+  }
+
+  /**
+   * Writes the payload to storage by namespace.
+   * 
+   * @param payload the payload to be written.
+   */
+  protected writePayload(payload: ILokaloEvent) {
+    const rows = [...this.getNamespace(), payload];
+    this.setNamespace(rows);
+  }
+
+  /**
+  * Mutes the output to console only logs.
+  */
   mute() {
     this.options.displayOutput = false;
   }
@@ -31,41 +115,11 @@ export class LokaloStore {
   }
 
   /**
-   * Gets namespaced value by key.
-   * 
-   */
-  getNamespace(): ILokaloEvent[] {
-    const obj = this.store.getItem(this.namespace);
-    return obj && obj.length ? JSON.parse(obj) : [];
-  }
-
-  /**
-   * Sets a namespace's value.
-   * 
-   * @param data the value to set to the namespace.
-   */
-  setNamespace(data: ILokaloEvent | ILokaloEvent[]) {
-    if (!data) return;
-    if (!Array.isArray(data))
-      data = [data];
-    const str = JSON.stringify(data);
-    this.store.setItem(this.namespace, str);
-  }
-
-  /**
-   * Removes from storage by namespace.
-   */
-  removeNamespace() {
-    this.clearQueue();
-    this.store.removeItem(this.namespace);
-  }
-
-  /**
    * Deletes rows for the given namespace.
    * 
    * @param count the number of rows to delete if not 1.
    */
-  removeRows(count = 1) {
+  remove(count = 1) {
     let rows = this.getNamespace();
     rows = rows.sort((a, b) => {
       if (a.timestamp > b.timestamp)
@@ -83,21 +137,6 @@ export class LokaloStore {
    */
   size() {
     return this.getNamespace().length;
-  }
-
-  /**
-   * Checks the maximum lines size.
-   */
-  checkMaxLines() {
-    if (!this.options.maxLines) return;
-    const count = this.size();
-    if (count === this.options.maxLines) {
-      this.removeRows();
-    }
-    else if (count > this.options.maxLines) {
-      const adj = count - this.options.maxLines;
-      this.removeRows(adj);
-    }
   }
 
   /**
@@ -127,41 +166,7 @@ export class LokaloStore {
    * @param lines the number of lines to purge.
    */
   purge(lines = 1) {
-    return this.removeRows(lines);
-  }
-
-  queuePayload(payload: ILokaloEvent) {
-
-    this.queue.push(payload);
-    this.resetQueue();
-
-    if (!this.options.displayOutput)
-      return;
-
-    const tsKey = getTimestamp().split('T')?.pop()?.slice(0, -1).trim(); // time only.
-    const truncMessage = payload.message.slice(0, 20);
-
-    const groupLabel = formatter(this.options.styles)
-      .add(payload.level as Style, tsKey)
-      .unstyled(this.namespace)
-      .unstyled('-')
-      .add('dim', truncMessage)
-      .toString();
-
-    console.groupCollapsed(...groupLabel);
-    console.log(payload);
-    console.groupEnd();
-
-  }
-
-  /**
-   * Writes the payload to storage by namespace.
-   * 
-   * @param payload the payload to be written.
-   */
-  writePayload(payload: ILokaloEvent) {
-    const rows = [...this.getNamespace(), payload];
-    this.setNamespace(rows);
+    return this.remove(lines);
   }
 
   /**

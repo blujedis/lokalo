@@ -1,19 +1,14 @@
 import { LokaloLogger } from './logger';
+import { set as setValue } from 'dot-prop';
+import type { ILokaloOptions } from './types';
 
 export class Lokalo extends LokaloLogger {
 
-  static __instance: Lokalo;
   loggers = new Set<LokaloLogger>();
 
-  constructor() {
-    super({ namespace: 'lokalo', parent: '' });
+  constructor(options: string | Omit<ILokaloOptions, 'parent'>) {
+    super(typeof options === 'string' ? { namespace: options } : options);
     this.loggers.add(this);
-  }
-
-  static get singleton() {
-    if (!Lokalo.__instance)
-      Lokalo.__instance = new this();
-    return Lokalo.__instance;
   }
 
   clearAll() {
@@ -21,6 +16,19 @@ export class Lokalo extends LokaloLogger {
     loggers.forEach(logger => logger.clear());
   }
 
+  /**
+   * Creates single object from all loggers/namespaces.
+   */
+  toObject() {
+    let obj = {} as Record<string, any>;
+    [...this.loggers.values()].forEach(logger => {
+      const namespace = logger.namespace;
+      const rows = logger.rows();
+      setValue(obj, namespace, rows);
+    });
+    return obj;
+  }
+
 }
 
-export default Lokalo.singleton;
+export default new Lokalo({ namespace: 'lokalo' });

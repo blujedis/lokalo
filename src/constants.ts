@@ -15,7 +15,6 @@ export const STYLES = {
 
 export const DEFAULTS: ILokaloOptions = {
   namespace: 'lokalo',
-  parent: '',
   level: 'error',
   uid: () => Date.now(),
   type: 'local' as 'local',

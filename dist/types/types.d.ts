@@ -8,7 +8,7 @@ export declare type LogLevel = Omit<LogLevelInternal, 'log'>;
 export declare type Styles = typeof STYLES;
 export declare type Style = keyof Styles;
 export interface ILokaloStoreOptions {
-    readonly parent: string;
+    readonly parent?: string;
     namespace: string;
     maxLines?: number;
     type?: 'local' | 'session';

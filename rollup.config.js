@@ -2,6 +2,8 @@
 
 import { terser } from 'rollup-plugin-terser';
 import typescript2 from 'rollup-plugin-typescript2';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 import pkg from './package.json';
 
@@ -63,6 +65,8 @@ const options = {
     }),
   ],
   plugins: [
+    nodeResolve(),
+    commonjs(),
     typescript2({
       clean: true,
       useTsconfigDeclarationDir: true,

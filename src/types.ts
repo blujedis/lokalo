@@ -8,7 +8,7 @@ export type Styles = typeof STYLES;
 export type Style = keyof Styles;
 
 export interface ILokaloStoreOptions {
-  readonly parent: string;
+  readonly parent?: string;
   namespace: string;
   maxLines?: number;
   type?: 'local' | 'session';

@@ -7,42 +7,54 @@ export declare class LokaloStore {
     options: Required<ILokaloStoreOptions>;
     constructor(options: ILokaloStoreOptions);
     /**
-     * Mutes the output to console only logs.
+     * Gets namespaced value by key.
+     *
      */
+    protected getNamespace(): ILokaloEvent[];
+    /**
+     * Sets a namespace's value.
+     *
+     * @param data the value to set to the namespace.
+     */
+    protected setNamespace(data: ILokaloEvent | ILokaloEvent[]): void;
+    /**
+     * Removes from storage by namespace.
+     */
+    protected removeNamespace(): void;
+    /**
+     * Checks the maximum lines size.
+     */
+    protected checkMaxLines(): void;
+    /**
+     * Queues the payload.
+     *
+     * @param payload the payload to be queued.
+     */
+    protected queuePayload(payload: ILokaloEvent): void;
+    /**
+     * Writes the payload to storage by namespace.
+     *
+     * @param payload the payload to be written.
+     */
+    protected writePayload(payload: ILokaloEvent): void;
+    /**
+    * Mutes the output to console only logs.
+    */
     mute(): void;
     /**
     * Unmutes the output to console and displays in console.
     */
     unmute(): void;
     /**
-     * Gets namespaced value by key.
-     *
-     */
-    getNamespace(): ILokaloEvent[];
-    /**
-     * Sets a namespace's value.
-     *
-     * @param data the value to set to the namespace.
-     */
-    setNamespace(data: ILokaloEvent | ILokaloEvent[]): void;
-    /**
-     * Removes from storage by namespace.
-     */
-    removeNamespace(): void;
-    /**
      * Deletes rows for the given namespace.
      *
      * @param count the number of rows to delete if not 1.
      */
-    removeRows(count?: number): void;
+    remove(count?: number): void;
     /**
      * Gets the number of rows for a namespace.
      */
     size(): number;
-    /**
-     * Checks the maximum lines size.
-     */
-    checkMaxLines(): void;
     /**
      * Returns rows for the active namespace.
      *
@@ -59,13 +71,6 @@ export declare class LokaloStore {
      * @param lines the number of lines to purge.
      */
     purge(lines?: number): void;
-    queuePayload(payload: ILokaloEvent): void;
-    /**
-     * Writes the payload to storage by namespace.
-     *
-     * @param payload the payload to be written.
-     */
-    writePayload(payload: ILokaloEvent): void;
     /**
     * Clears the log queue.
     */

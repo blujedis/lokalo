@@ -1,6 +1,7 @@
 import { getTimestamp, serializeError } from './utils';
 import { DEFAULTS } from './constants';
 import { LOG_LEVELS } from './constants';
+
 import type {
   ILokaloEvent,
   ILokaloOptions, LogLevel,
@@ -14,7 +15,7 @@ export class LokaloLogger extends LokaloStore {
   options: Required<ILokaloOptions>;
 
   constructor(options: ILokaloOptions, public parent?: LokaloLogger) {
-    super({ ...DEFAULTS as any, ...options });
+    super({ ...DEFAULTS as any, parent: '', ...options });
     this.options = { ...DEFAULTS as any, ...options };
     this.checkMaxLines();
   }
