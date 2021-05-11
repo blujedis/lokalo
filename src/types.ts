@@ -1,39 +1,36 @@
 import type { LOG_LEVELS, STYLES } from './constants';
 
-export interface IStorageLoggerOptions<K extends string = '$uid'> {
+export type ILokaloPayload = string | number | boolean | (Error & { [key: string]: any }) | Record<string, any>;
+export type LokaloOptions = Omit<ILokaloOptions, 'parent'>;
+export type LogLevelInternal = typeof LOG_LEVELS[number];
+export type LogLevel = Omit<LogLevelInternal, 'log'>;
+export type Styles = typeof STYLES;
+export type Style = keyof Styles;
+
+export interface ILokaloStoreOptions {
   readonly parent: string;
-  type?: 'session' | 'local'
   namespace: string;
   maxLines?: number;
-  key?: K;
-  keyValue?: () => string | number;
-  userKey?: string;
-  level?: Omit<LogLevel, 'log'>;
-  consoleOutput?: 'development' | 'always';
+  type?: 'local' | 'session';
+  displayOutput?: boolean;
   styles?: Record<Style, string>;
 }
 
-export type StorageLoggerPayload = string | number | boolean | (Error & { [key: string]: any }) | Record<string, any>;
+export interface ILokaloOptions extends ILokaloStoreOptions {
+  uid?: () => string | number;
+  level?: LogLevel;
+}
 
-export type StorageLoggerOptions = Omit<IStorageLoggerOptions, 'parent'>;
-
-export interface IStorageLoggerEvent<U extends Record<string, any> = Record<string, any>> {
-  level: LogLevel;
+export interface ILokaloEvent {
+  id: string | number;
+  level: LogLevelInternal;
   timestamp: string;
   namespace: string;
   message: string;
-  user?: U;
   [key: string]: any;
 }
 
-export interface IStorageLoggerEvents {
-  [key: string]: StorageLoggerEvent;
+export interface ILokaloEvents {
+  [key: string]: ILokaloEvent;
 }
 
-export type LogLevel = typeof LOG_LEVELS[number];
-
-export type StorageLoggerEvent<K extends string = '$uid', U extends Record<string, any> = Record<string, any>> = Record<keyof K, string | number> & IStorageLoggerEvent<U>;
-
-export type Styles = typeof STYLES;
-
-export type Style = keyof Styles;

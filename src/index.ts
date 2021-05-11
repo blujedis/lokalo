@@ -1,5 +1,5 @@
-import defaultLogger from './logger';
+import defaultInstance from './lokalo';
 export * from './types';
 export * from './constants';
-export * from './logger';
-export default defaultLogger;
+export * from './lokalo';
+export default defaultInstance;

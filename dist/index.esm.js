@@ -18,6 +18,22 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
+/* global Reflect, Promise */
+
+var extendStatics = function(d, b) {
+    extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+    return extendStatics(d, b);
+};
+
+function __extends(d, b) {
+    if (typeof b !== "function" && b !== null)
+        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+    extendStatics(d, b);
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
 
 var __assign = function() {
     __assign = Object.assign || function __assign(t) {
@@ -29,6 +45,23 @@ var __assign = function() {
     };
     return __assign.apply(this, arguments);
 };
+
+function __read(o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+}
 
 function __spreadArray(to, from) {
     for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
@@ -72,7 +105,7 @@ function formatter(styles) {
      * Converts tokens and values to styled result for logging.
      */
     function toString() {
-        return __spreadArray([_tokens.join(' ')], _styles);
+        return __spreadArray([_tokens.join(' ')], __read(_styles));
     }
     return api;
 }
@@ -92,7 +125,7 @@ function getTimestamp(date) {
  * @param parent the parent to be prefixed.
  */
 function formatNamespace(ns, parent) {
-    var segments = __spreadArray(__spreadArray([], parent.split('.')), [ns]);
+    var segments = __spreadArray(__spreadArray([], __read(parent.split('.'))), [ns]);
     return segments.join('.');
 }
 /**
@@ -112,265 +145,292 @@ function serializeError(err) {
     return result;
 }
 
-var ENV_LOG_LEVEL = typeof process !== 'undefined' ? process.env['REACT_APP_LOG_LEVEL'] : 'error';
 var LOG_LEVELS = ['log', 'fatal', 'error', 'warn', 'info', 'debug'];
 var STYLES = {
     inherit: 'color: inherit',
     dim: 'color: #666',
     log: 'color: lightslategray',
-    fatal: 'color: gold; background-color: firebrick',
+    fatal: 'color: red',
     error: 'color: firebrick',
     warn: 'color: gold',
     info: 'color: deepskyblue',
     debug: 'color: magenta'
 };
 var DEFAULTS = {
+    namespace: 'lokalo',
+    parent: '',
+    level: 'error',
+    uid: function () { return Date.now(); },
     type: 'local',
-    maxLines: 10,
-    key: '$uid',
-    keyValue: function () { return Date.now(); },
-    userKey: 'user',
-    level: ENV_LOG_LEVEL,
-    consoleOutput: 'development',
+    maxLines: 3,
+    displayOutput: true,
     styles: __assign({}, STYLES)
 };
 
-/**
- * Creates a new storage logger instance.
- *
- * @param options storage logger options.
- * @param namespaces currently loaded namespaces.
- */
-function createStorageLogger(options, namespaces) {
-    if (namespaces === void 0) { namespaces = []; }
-    options = __assign(__assign({}, DEFAULTS), options);
-    var store = options.type === 'local' ? localStorage : sessionStorage;
-    var _a = options, parent = _a.parent, namespace = _a.namespace, maxLines = _a.maxLines, key = _a.key, keyValue = _a.keyValue, userKey = _a.userKey, initLevel = _a.level, consoleOutput = _a.consoleOutput, styles = _a.styles;
-    var activeNamespace = formatNamespace(namespace, parent);
-    var _queue = [];
-    var _queueId;
-    if (!namespaces.includes(activeNamespace))
-        namespaces.push(activeNamespace);
-    /**
-     * Clears the log queue.
-     */
-    function clearQueue() {
-        if (!_queueId)
-            return;
-        clearInterval(_queueId);
-        _queue = [];
+var LokaloStore = /** @class */ (function () {
+    function LokaloStore(options) {
+        this.store = localStorage;
+        this.queue = [];
+        this.namespace = options.parent ? formatNamespace(options.namespace, options.parent) : options.namespace;
+        this.store = options.type === 'local' ? localStorage : sessionStorage;
+        this.options = options;
     }
     /**
-     * Starts the log queue.
+     * Mutes the output to console only logs.
      */
-    function startQueue() {
-        _queueId = setInterval(function () {
-            if (!_queue.length)
-                return clearQueue();
-            writePayload(activeNamespace, _queue.shift());
-        }, 150);
-    }
+    LokaloStore.prototype.mute = function () {
+        this.options.displayOutput = false;
+    };
+    /**
+    * Unmutes the output to console and displays in console.
+    */
+    LokaloStore.prototype.unmute = function () {
+        this.options.displayOutput = true;
+    };
     /**
      * Gets namespaced value by key.
      *
-     * @param ns the namespace to get.
      */
-    function getKey(ns) {
-        var obj = store.getItem(ns);
+    LokaloStore.prototype.getNamespace = function () {
+        var obj = this.store.getItem(this.namespace);
         return obj && obj.length ? JSON.parse(obj) : [];
-    }
-    /**
-     * Gets a user from storage.
-     * NOTE: always uses localStorage.
-     *
-     * @param key the user key for retrieving user object.
-     */
-    function getUser(key) {
-        var user = localStorage.getItem(key);
-        var item = store.getItem(key);
-        if (!user || !item)
-            return null;
-        return JSON.parse(item);
-    }
+    };
     /**
      * Sets a namespace's value.
      *
-     * @param ns the names apce to be set.
      * @param data the value to set to the namespace.
      */
-    function setKey(ns, data) {
+    LokaloStore.prototype.setNamespace = function (data) {
         if (!data)
             return;
         if (!Array.isArray(data))
             data = [data];
         var str = JSON.stringify(data);
-        store.setItem(ns, str);
-    }
-    function removeKey(ns) {
-        store.removeItem(ns);
-    }
+        this.store.setItem(this.namespace, str);
+    };
+    /**
+     * Removes from storage by namespace.
+     */
+    LokaloStore.prototype.removeNamespace = function () {
+        this.clearQueue();
+        this.store.removeItem(this.namespace);
+    };
     /**
      * Deletes rows for the given namespace.
      *
-     * @param ns the namespace to delete rows for.
      * @param count the number of rows to delete if not 1.
      */
-    function deleteRows(ns, count) {
+    LokaloStore.prototype.removeRows = function (count) {
         if (count === void 0) { count = 1; }
-        var rows = getKey(ns);
-        rows.sort(function (a, b) {
+        var rows = this.getNamespace();
+        rows = rows.sort(function (a, b) {
             if (a.timestamp > b.timestamp)
                 return 1;
             else if (a.timestamp < b.timestamp)
                 return -1;
             else
                 return 0;
-        }).splice(0, count);
-        setKey(ns, rows);
-    }
+        }).slice(count);
+        this.setNamespace(rows);
+    };
     /**
      * Gets the number of rows for a namespace.
-     *
-     * @param ns the namespace to get row count for.
      */
-    function rowsCount(ns) {
-        return getKey(ns).length;
-    }
+    LokaloStore.prototype.size = function () {
+        return this.getNamespace().length;
+    };
     /**
-     * Gets the size of a namespace.
-     *
-     * @param ns the namespace to get size for.
+     * Checks the maximum lines size.
      */
-    function checkSize(ns) {
-        if (!maxLines)
+    LokaloStore.prototype.checkMaxLines = function () {
+        if (!this.options.maxLines)
             return;
-        var count = rowsCount(ns);
-        if (count === maxLines) {
-            deleteRows(ns);
+        var count = this.size();
+        if (count === this.options.maxLines) {
+            this.removeRows();
         }
-        else if (count > maxLines) {
-            var adj = count - maxLines;
-            deleteRows(ns, adj);
+        else if (count > this.options.maxLines) {
+            var adj = count - this.options.maxLines;
+            this.removeRows(adj);
         }
-    }
+    };
     /**
-     * Checks if a level is active.
+     * Returns rows for the active namespace.
      *
-     * @param level the level to inspect as active.
+     * @param limit value used to limit returned rows.
      */
-    function isActiveLevel(level) {
-        var curIndex = LOG_LEVELS.indexOf(level);
-        var loggerIndex = LOG_LEVELS.indexOf(logger.level);
-        return curIndex <= loggerIndex;
-    }
+    LokaloStore.prototype.rows = function (limit) {
+        if (limit === void 0) { limit = 0; }
+        var rows = this.getNamespace().reverse();
+        if (this.queue.length)
+            rows = __spreadArray(__spreadArray([], __read(this.queue)), __read(rows));
+        if (limit)
+            rows = rows.slice(0, limit);
+        return rows;
+    };
     /**
-     * Checks if should output to console as well as log to storage.
+     * Clears the current namespace.
      */
-    function shouldOutput() {
-        return (consoleOutput === 'always' || process.env['NODE_ENV'] !== 'production');
-    }
+    LokaloStore.prototype.clear = function () {
+        return this.removeNamespace();
+    };
+    /**
+     * Purges lines from the logger.
+     *
+     * @param lines the number of lines to purge.
+     */
+    LokaloStore.prototype.purge = function (lines) {
+        if (lines === void 0) { lines = 1; }
+        return this.removeRows(lines);
+    };
+    LokaloStore.prototype.queuePayload = function (payload) {
+        var _a, _b;
+        this.queue.push(payload);
+        this.resetQueue();
+        if (!this.options.displayOutput)
+            return;
+        var tsKey = (_b = (_a = getTimestamp().split('T')) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.slice(0, -1).trim(); // time only.
+        var truncMessage = payload.message.slice(0, 20);
+        var groupLabel = formatter(this.options.styles)
+            .add(payload.level, tsKey)
+            .unstyled(this.namespace)
+            .unstyled('-')
+            .add('dim', truncMessage)
+            .toString();
+        console.groupCollapsed.apply(console, __spreadArray([], __read(groupLabel)));
+        console.log(payload);
+        console.groupEnd();
+    };
     /**
      * Writes the payload to storage by namespace.
      *
-     * @param ns the namespace to be written.
      * @param payload the payload to be written.
      */
-    function writePayload(ns, payload) {
-        var _a;
-        var rows = __spreadArray(__spreadArray([], getKey(ns)), [payload]);
-        if (shouldOutput()) {
-            var tsKey = (_a = getTimestamp(payload[key]).split('.').shift()) === null || _a === void 0 ? void 0 : _a.split('T').join(' ');
-            var trimNs = ns.replace(/^logger\./, '');
-            var truncMessage = payload.message.slice(0, 25);
-            var groupLabel = formatter(styles)
-                .add(payload.level, tsKey)
-                .unstyled(trimNs)
-                .unstyled('-')
-                .add('dim', truncMessage)
-                .toString();
-            console.groupCollapsed.apply(console, groupLabel);
-            console.log(payload);
-            console.groupEnd();
-        }
-        setKey(ns, rows);
+    LokaloStore.prototype.writePayload = function (payload) {
+        var rows = __spreadArray(__spreadArray([], __read(this.getNamespace())), [payload]);
+        this.setNamespace(rows);
+    };
+    /**
+    * Clears the log queue.
+    */
+    LokaloStore.prototype.clearQueue = function () {
+        if (this.queueId)
+            clearInterval(this.queueId);
+        this.queue = [];
+    };
+    /**
+     * Resets queue timer but leaves queue payloads.
+     */
+    LokaloStore.prototype.resetQueue = function () {
+        clearInterval(this.queueId);
+        this.startQueue();
+    };
+    /**
+     * Starts the log queue.
+     */
+    LokaloStore.prototype.startQueue = function () {
+        var _this = this;
+        this.queueId = setInterval(function () {
+            var payload = _this.queue.shift();
+            if (payload)
+                _this.writePayload(payload);
+            if (!_this.queue.length)
+                _this.clearQueue();
+        }, 100);
+    };
+    return LokaloStore;
+}());
+
+var LokaloLogger = /** @class */ (function (_super) {
+    __extends(LokaloLogger, _super);
+    function LokaloLogger(options, parent) {
+        var _this = _super.call(this, __assign(__assign({}, DEFAULTS), options)) || this;
+        _this.parent = parent;
+        _this.options = __assign(__assign({}, DEFAULTS), options);
+        _this.checkMaxLines();
+        return _this;
     }
-    function logger(level, payload) {
+    LokaloLogger.prototype._logger = function (level, payload) {
         // We don't want to log empty lines in local storage.
         if (typeof level === 'undefined')
-            return logger;
+            return this;
         if (!payload) {
             payload = level;
             level = '';
         }
         level = level || 'log';
-        if (!isActiveLevel(logger.level))
-            return logger;
+        if (!this.isActiveLevel(this.level))
+            return this;
         if (typeof payload === 'string')
             payload = { message: payload };
         else if (payload instanceof Error)
             payload = serializeError(payload);
-        checkSize(activeNamespace);
+        this.checkMaxLines();
         var _payload = payload;
-        _payload[key] = keyValue();
-        _payload.namespace = activeNamespace;
+        _payload.id = this.options.uid();
+        _payload.namespace = this.namespace;
         _payload.timestamp = getTimestamp();
         _payload.message = _payload.message || '';
-        if (userKey)
-            _payload.user = getUser(userKey);
+        _payload.level = level;
         // Add to the queue.
-        _queue.push(_payload);
-        if (!_queueId)
-            startQueue();
-        return logger;
-    }
+        this.queuePayload(_payload);
+        return this;
+    };
+    Object.defineProperty(LokaloLogger.prototype, "level", {
+        get: function () {
+            return this.options.level;
+        },
+        enumerable: false,
+        configurable: true
+    });
     /**
-     * The current enabled log level.
-     */
-    logger.level = initLevel;
-    /**
-     * The active namespace.
-     */
-    logger.namespace = activeNamespace;
-    /**
-     * An array of logger namespaces.
-     */
-    logger.namespaces = namespaces;
-    /**
-     * Logs a payload by default level.
+     * Checks if a level is active.
      *
-     * @param payload the payload to be logged.
+     * @param level the level to inspect as active.
      */
-    logger.log = function (payload) { return logger('log', payload); };
+    LokaloLogger.prototype.isActiveLevel = function (level) {
+        if (level === 'log')
+            return true;
+        var curIndex = LOG_LEVELS.indexOf(level);
+        var loggerIndex = LOG_LEVELS.indexOf(this.level);
+        return curIndex <= loggerIndex;
+    };
+    /**
+      * Logs a payload by default level.
+      *
+      * @param payload the payload to be logged.
+      */
+    LokaloLogger.prototype.log = function (payload) { return this._logger('log', payload); };
     /**
      * Logs a payload by fatal log level.
      *
      * @param payload the payload to be logged.
      */
-    logger.fatal = function (payload) { return logger('fatal', payload); };
+    LokaloLogger.prototype.fatal = function (payload) { this._logger('fatal', payload); };
     /**
      * Logs a payload by error log level.
      *
      * @param payload the payload to be logged.
      */
-    logger.error = function (payload) { return logger('error', payload); };
+    LokaloLogger.prototype.error = function (payload) { this._logger('error', payload); };
     /**
      * Logs a payload by warn log level.
      *
      * @param payload the payload to be logged.
      */
-    logger.warn = function (payload) { return logger('warn', payload); };
+    LokaloLogger.prototype.warn = function (payload) { this._logger('warn', payload); };
     /**
      * Logs a payload by info log level.
      *
      * @param payload the payload to be logged.
      */
-    logger.info = function (payload) { return logger('info', payload); };
+    LokaloLogger.prototype.info = function (payload) { this._logger('info', payload); };
     /**
      * Logs a payload by debug log level.
      *
      * @param payload the payload to be logged.
      */
-    logger.debug = function (payload) { return logger('debug', payload); };
+    LokaloLogger.prototype.debug = function (payload) { this._logger('debug', payload); };
     /**
      * Creates a child logger instance.
      *
@@ -378,54 +438,39 @@ function createStorageLogger(options, namespaces) {
      * import defLogger from './path/to/logger'
      * const logger = defLogger.child('your.namespace');
      *
-     * @param ns the namspace of the child to create.
+     * @param namespace the namspace of the child to create.
      */
-    logger.child = function (ns) {
-        var nextParent = /global$/.test(activeNamespace) ? 'logger' : activeNamespace;
-        return createStorageLogger(__assign(__assign({}, options), { parent: nextParent, namespace: ns }), namespaces);
+    LokaloLogger.prototype.child = function (namespace) {
+        return new LokaloLogger(__assign(__assign({}, this.options), { parent: this.namespace, namespace: namespace }), this);
     };
-    /**
-     * Returns rows for the active namespace.
-     *
-     * @param limit value used to limit returned rows.
-     */
-    logger.rows = function (limit) {
-        if (limit === void 0) { limit = 0; }
-        var rows = getKey(activeNamespace).reverse();
-        if (limit)
-            rows = rows.slice(0, limit);
-        return rows;
-    };
-    /**
-     * Gets the size of the namespace by row count.
-     */
-    logger.size = function () { return rowsCount(activeNamespace); };
-    /**
-     * Clears the current namespace.
-     */
-    logger.clear = function () {
-        removeKey(activeNamespace);
-    };
-    /**
-     * Clears all namespaces.
-     */
-    logger.clearAll = function () { return namespaces.forEach(function (ns) { return removeKey(ns); }); };
-    /**
-     * Purges lines from the logger.
-     *
-     * @param lines the number of lines to purge.
-     */
-    logger.purge = function (lines) {
-        if (lines === void 0) { lines = 1; }
-        deleteRows(activeNamespace, lines);
-    };
-    return logger;
-}
-/**
- * Default logger instance.
- */
-var defaultLogger = createStorageLogger({ parent: 'logger', namespace: 'global' });
+    return LokaloLogger;
+}(LokaloStore));
 
-export default defaultLogger;
-export { DEFAULTS, ENV_LOG_LEVEL, LOG_LEVELS, STYLES };
+var Lokalo = /** @class */ (function (_super) {
+    __extends(Lokalo, _super);
+    function Lokalo() {
+        var _this = _super.call(this, { namespace: 'lokalo', parent: '' }) || this;
+        _this.loggers = new Set();
+        _this.loggers.add(_this);
+        return _this;
+    }
+    Object.defineProperty(Lokalo, "singleton", {
+        get: function () {
+            if (!Lokalo.__instance)
+                Lokalo.__instance = new this();
+            return Lokalo.__instance;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Lokalo.prototype.clearAll = function () {
+        var loggers = __spreadArray([], __read(this.loggers.values()));
+        loggers.forEach(function (logger) { return logger.clear(); });
+    };
+    return Lokalo;
+}(LokaloLogger));
+var defaultInstance = Lokalo.singleton;
+
+export default defaultInstance;
+export { DEFAULTS, LOG_LEVELS, Lokalo, STYLES };
 //# sourceMappingURL=index.esm.js.map

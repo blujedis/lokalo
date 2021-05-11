@@ -1,0 +1,184 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+
+  <title>Lokalo</title>
+  <meta name="description" content="Lokalo logger test">
+  <meta name="author" content="Blujedis">
+
+  <style>
+    .container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .box-container {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-around;
+      width: 60%;
+    }
+
+    .box-outer {
+      width: 40%;
+    }
+
+    .box {
+      padding: 1.5rem;
+      background-color: #f7f7f7;
+      height: 195px;
+      overflow-y: auto;
+    }
+
+    .row {
+      display: flex;
+      padding-top: 2px;
+      padding-bottom: 2px;
+      flex-direction: row;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .row div:first-child {
+      width: 35%;
+      background-color: rgb(230, 230, 230);
+      padding: 1px;
+      text-align: center;
+    }
+
+    .row div:nth-child(2) {
+      width: 10%;
+    }
+
+    .row div:nth-child(3) {
+      width: 55%;
+      text-align: left;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .buttons button {
+      margin-left: 8px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Lokalo Logger</h1>
+    <p>
+      Just a little test page to ensure Lokalo is working!
+    </p>
+
+    <div class="box-container">
+
+      <div class="box-outer">
+        <h3 style="text-align: center;">Log Message</h3>
+        <div class="box">
+          <p>
+            <select id="type">
+              <option selected>log</option>
+              <option>fatal</option>
+              <option>error</option>
+              <option>warn</option>
+              <option>info</option>
+              <option>debug</option>
+            </select>
+          </p>
+          <p>
+            <textarea id="message"></textarea>
+          </p>
+          <p>
+            <button onclick="log();">Log Message</button>
+          </p>
+        </div>
+      </div>
+
+      <div style="width: 20%"></div>
+
+      <div class="box-outer">
+        <h3 style="text-align: center;">Log List</h3>
+        <div class="box">
+          <div id="list"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="buttons">
+      <p>
+        <button onclick="purge();">Purge 1 Row</button>
+      </p>
+      <p>
+        <button onclick="clearAll();">Clear All Rows</button>
+      </p>
+    </div>
+
+  </div>
+
+  <script src="dist/index.umd.js"></script>
+  <script>
+
+    const lokalo = Lokalo.default;
+    const child = lokalo.child('child');
+
+    const typeElem = document.querySelector('#type');
+    const messageElem = document.querySelector('#message');
+    const listElem = document.querySelector('#list');
+
+    function updateRows() {
+      listElem.innerHTML = '';
+      const rows = lokalo.rows();
+      if (!rows || !rows.length) return;
+      rows.forEach(function (row) {
+        const level = document.createElement('div');
+        level.innerText = row.level;
+        const spacer = document.createElement('div');
+        const message = document.createElement('div');
+        message.innerText = row.message;
+        const div = document.createElement('div');
+        div.classList.add('row');
+        div.appendChild(level);
+        div.appendChild(spacer)
+        div.appendChild(message);
+        listElem.appendChild(div);
+      });
+    }
+
+    function log() {
+      const type = typeElem.options[typeElem.selectedIndex].value;
+      const message = messageElem.value;
+      if (!message) return alert('Please enter a message.');
+      lokalo[type](message);
+      messageElem.value = '';
+      updateRows();
+    }
+
+    function purge() {
+      lokalo.purge();
+      updateRows();
+    }
+
+    function clearAll() {
+      lokalo.clear();
+      updateRows();
+    }
+
+    updateRows();
+
+  </script>
+</body>
+
+</html>
