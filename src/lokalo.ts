@@ -1,5 +1,5 @@
 import { LokaloLogger } from './logger';
-import { set as setValue } from 'dot-prop';
+import { setProperty } from 'dot-prop';
 import type { ILokaloOptions } from './types';
 
 export class Lokalo extends LokaloLogger {
@@ -20,11 +20,11 @@ export class Lokalo extends LokaloLogger {
    * Creates single object from all loggers/namespaces.
    */
   toObject() {
-    let obj = {} as Record<string, any>;
+    const obj = {} as Record<string, any>;
     [...this.loggers.values()].forEach(logger => {
       const namespace = logger.namespace;
       const rows = logger.rows();
-      setValue(obj, namespace, rows);
+      setProperty(obj, namespace, rows);
     });
     return obj;
   }

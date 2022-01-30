@@ -1,7 +1,6 @@
 import { getTimestamp, serializeError } from './utils';
 import { DEFAULTS } from './constants';
 import { LOG_LEVELS } from './constants';
-
 import type {
   ILokaloEvent,
   ILokaloOptions, LogLevel,
@@ -9,6 +8,7 @@ import type {
   ILokaloPayload
 } from './types';
 import { LokaloStore } from './store';
+import type { LokaloOptions } from '.';
 
 export class LokaloLogger extends LokaloStore {
 
@@ -60,6 +60,30 @@ export class LokaloLogger extends LokaloStore {
 
   get level() {
     return this.options.level;
+  }
+
+  /**
+   * Sets a value for options.
+   * 
+   * @param key the option key to be updated.
+   * @param value the key's value to be set.
+   */
+  setOption<K extends keyof LokaloOptions>(key: K, value?: LokaloOptions[K]): void; 
+
+  /**
+   * Merges object of options with provided.
+   * To override options use: Lokalo.options = { new object }.
+   * @param options an options object to be merged with current.
+   */
+  setOption(options: LokaloOptions): void; 
+  setOption<K extends keyof LokaloOptions>(keyOrOptions: K | LokaloOptions, value?: LokaloOptions[K]) {
+    if (arguments.length === 2) {
+      const key = keyOrOptions as K;
+      this.options[key] = value as Required<ILokaloOptions>[K];
+    }
+    else {
+     this.options = { ...this.options, ...(keyOrOptions as  Required<ILokaloOptions>)}
+    }
   }
 
   /**

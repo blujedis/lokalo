@@ -1,4 +1,5 @@
 import type { ILokaloOptions } from './types';
+import { uuidv4 } from './utils';
 
 export const LOG_LEVELS = <const>['log', 'fatal', 'error', 'warn', 'info', 'debug'];
 
@@ -14,11 +15,11 @@ export const STYLES = {
 };
 
 export const DEFAULTS: ILokaloOptions = {
-  namespace: 'lokalo',
+  namespace: 'default',
   level: 'error',
-  uid: () => Date.now(),
-  type: 'local' as 'local',
-  maxLines: 3,
+  uid: () => uuidv4(),
+  type: 'local' as const,
+  maxLines: 50,
   displayOutput: true,
   styles: { ...STYLES }
 };

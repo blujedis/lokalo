@@ -1,11 +1,25 @@
 import type { ILokaloOptions, LogLevel, LogLevelInternal, ILokaloPayload } from './types';
 import { LokaloStore } from './store';
+import type { LokaloOptions } from '.';
 export declare class LokaloLogger extends LokaloStore {
     parent?: LokaloLogger | undefined;
     options: Required<ILokaloOptions>;
     constructor(options: ILokaloOptions, parent?: LokaloLogger | undefined);
     private _logger;
     get level(): LogLevel;
+    /**
+     * Sets a value for options.
+     *
+     * @param key the option key to be updated.
+     * @param value the key's value to be set.
+     */
+    setOption<K extends keyof LokaloOptions>(key: K, value?: LokaloOptions[K]): void;
+    /**
+     * Merges object of options with provided.
+     * To override options use: Lokalo.options = { new object }.
+     * @param options an options object to be merged with current.
+     */
+    setOption(options: LokaloOptions): void;
     /**
      * Checks if a level is active.
      *

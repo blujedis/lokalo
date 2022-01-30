@@ -28,7 +28,8 @@ module.exports = {
   "ignorePatterns": [
     "dist",
     "build",
-    "temp.js"
+    "temp.js",
+    "docs"
   ],
   "settings": {
     "react": {

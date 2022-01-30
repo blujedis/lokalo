@@ -30,4 +30,8 @@ export declare function formatNamespace(ns: string, parent: string): string;
 export declare function serializeError<E extends Error>(err: E & {
     [key: string]: any;
 }): Record<keyof E, any>;
+/**
+ * Generate UUID v4.
+ */
+export declare function uuidv4(): string;
 //# sourceMappingURL=utils.d.ts.map

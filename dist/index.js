@@ -1,5 +1,5 @@
 /*!
- * lokalo v0.0.1
+ * lokalo v0.0.2
  * (c) Blujedis LLC blujedicorp@gmail.com
  * Released under the MIT License.
  */
@@ -67,10 +67,14 @@ function __read(o, n) {
     return ar;
 }
 
-function __spreadArray(to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+function __spreadArray(to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 }
 
 /**
@@ -109,7 +113,7 @@ function formatter(styles) {
      * Converts tokens and values to styled result for logging.
      */
     function toString() {
-        return __spreadArray([_tokens.join(' ')], __read(_styles));
+        return __spreadArray([_tokens.join(' ')], __read(_styles), false);
     }
     return api;
 }
@@ -129,7 +133,7 @@ function getTimestamp(date) {
  * @param parent the parent to be prefixed.
  */
 function formatNamespace(ns, parent) {
-    var segments = __spreadArray(__spreadArray([], __read(parent.split('.'))), [ns]);
+    var segments = __spreadArray(__spreadArray([], __read(parent.split('.')), false), [ns], false);
     return segments.join('.');
 }
 /**
@@ -148,6 +152,15 @@ function serializeError(err) {
         result.name = err.name;
     return result;
 }
+/**
+ * Generate UUID v4.
+ */
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
 var LOG_LEVELS = ['log', 'fatal', 'error', 'warn', 'info', 'debug'];
 var STYLES = {
@@ -161,11 +174,11 @@ var STYLES = {
     debug: 'color: magenta'
 };
 var DEFAULTS = {
-    namespace: 'lokalo',
+    namespace: 'default',
     level: 'error',
-    uid: function () { return Date.now(); },
+    uid: function () { return uuidv4(); },
     type: 'local',
-    maxLines: 3,
+    maxLines: 50,
     displayOutput: true,
     styles: __assign({}, STYLES)
 };
@@ -240,7 +253,7 @@ var LokaloStore = /** @class */ (function () {
             .unstyled('-')
             .add('dim', truncMessage)
             .toString();
-        console.groupCollapsed.apply(console, __spreadArray([], __read(groupLabel)));
+        console.groupCollapsed.apply(console, __spreadArray([], __read(groupLabel), false));
         console.log(payload);
         console.groupEnd();
     };
@@ -250,7 +263,7 @@ var LokaloStore = /** @class */ (function () {
      * @param payload the payload to be written.
      */
     LokaloStore.prototype.writePayload = function (payload) {
-        var rows = __spreadArray(__spreadArray([], __read(this.getNamespace())), [payload]);
+        var rows = __spreadArray(__spreadArray([], __read(this.getNamespace()), false), [payload], false);
         this.setNamespace(rows);
     };
     /**
@@ -298,7 +311,7 @@ var LokaloStore = /** @class */ (function () {
         if (limit === void 0) { limit = 0; }
         var rows = this.getNamespace().reverse();
         if (this.queue.length)
-            rows = __spreadArray(__spreadArray([], __read(this.queue)), __read(rows));
+            rows = __spreadArray(__spreadArray([], __read(this.queue), false), __read(rows), false);
         if (limit)
             rows = rows.slice(0, limit);
         return rows;
@@ -391,6 +404,15 @@ var LokaloLogger = /** @class */ (function (_super) {
         enumerable: false,
         configurable: true
     });
+    LokaloLogger.prototype.setOption = function (keyOrOptions, value) {
+        if (arguments.length === 2) {
+            var key = keyOrOptions;
+            this.options[key] = value;
+        }
+        else {
+            this.options = __assign(__assign({}, this.options), keyOrOptions);
+        }
+    };
     /**
      * Checks if a level is active.
      *
@@ -454,148 +476,202 @@ var LokaloLogger = /** @class */ (function (_super) {
     return LokaloLogger;
 }(LokaloStore));
 
-var isObj$1 = value => {
+const isObject = value => {
 	const type = typeof value;
 	return value !== null && (type === 'object' || type === 'function');
 };
 
-const isObj = isObj$1;
-
 const disallowedKeys = new Set([
 	'__proto__',
 	'prototype',
-	'constructor'
+	'constructor',
 ]);
 
-const isValidPath = pathSegments => !pathSegments.some(segment => disallowedKeys.has(segment));
+const digits = new Set('0123456789');
 
 function getPathSegments(path) {
-	const pathArray = path.split('.');
 	const parts = [];
+	let currentSegment = '';
+	let currentPart = 'start';
+	let isIgnoring = false;
 
-	for (let i = 0; i < pathArray.length; i++) {
-		let p = pathArray[i];
+	for (const character of path) {
+		switch (character) {
+			case '\\':
+				if (currentPart === 'index') {
+					throw new Error('Invalid character in an index');
+				}
 
-		while (p[p.length - 1] === '\\' && pathArray[i + 1] !== undefined) {
-			p = p.slice(0, -1) + '.';
-			p += pathArray[++i];
+				if (currentPart === 'indexEnd') {
+					throw new Error('Invalid character after an index');
+				}
+
+				if (isIgnoring) {
+					currentSegment += character;
+				}
+
+				currentPart = 'property';
+				isIgnoring = !isIgnoring;
+				break;
+
+			case '.':
+				if (currentPart === 'index') {
+					throw new Error('Invalid character in an index');
+				}
+
+				if (currentPart === 'indexEnd') {
+					currentPart = 'property';
+					break;
+				}
+
+				if (isIgnoring) {
+					isIgnoring = false;
+					currentSegment += character;
+					break;
+				}
+
+				if (disallowedKeys.has(currentSegment)) {
+					return [];
+				}
+
+				parts.push(currentSegment);
+				currentSegment = '';
+				currentPart = 'property';
+				break;
+
+			case '[':
+				if (currentPart === 'index') {
+					throw new Error('Invalid character in an index');
+				}
+
+				if (currentPart === 'indexEnd') {
+					currentPart = 'index';
+					break;
+				}
+
+				if (isIgnoring) {
+					isIgnoring = false;
+					currentSegment += character;
+					break;
+				}
+
+				if (currentPart === 'property') {
+					if (disallowedKeys.has(currentSegment)) {
+						return [];
+					}
+
+					parts.push(currentSegment);
+					currentSegment = '';
+				}
+
+				currentPart = 'index';
+				break;
+
+			case ']':
+				if (currentPart === 'index') {
+					parts.push(Number.parseInt(currentSegment, 10));
+					currentSegment = '';
+					currentPart = 'indexEnd';
+					break;
+				}
+
+				if (currentPart === 'indexEnd') {
+					throw new Error('Invalid character after an index');
+				}
+
+				// Falls through
+
+			default:
+				if (currentPart === 'index' && !digits.has(character)) {
+					throw new Error('Invalid character in an index');
+				}
+
+				if (currentPart === 'indexEnd') {
+					throw new Error('Invalid character after an index');
+				}
+
+				if (currentPart === 'start') {
+					currentPart = 'property';
+				}
+
+				if (isIgnoring) {
+					isIgnoring = false;
+					currentSegment += '\\';
+				}
+
+				currentSegment += character;
 		}
-
-		parts.push(p);
 	}
 
-	if (!isValidPath(parts)) {
-		return [];
+	if (isIgnoring) {
+		currentSegment += '\\';
+	}
+
+	switch (currentPart) {
+		case 'property': {
+			if (disallowedKeys.has(currentSegment)) {
+				return [];
+			}
+
+			parts.push(currentSegment);
+
+			break;
+		}
+
+		case 'index': {
+			throw new Error('Index was not closed');
+		}
+
+		case 'start': {
+			parts.push('');
+
+			break;
+		}
+	// No default
 	}
 
 	return parts;
 }
 
-var dotProp = {
-	get(object, path, value) {
-		if (!isObj(object) || typeof path !== 'string') {
-			return value === undefined ? object : value;
-		}
-
-		const pathArray = getPathSegments(path);
-		if (pathArray.length === 0) {
-			return;
-		}
-
-		for (let i = 0; i < pathArray.length; i++) {
-			object = object[pathArray[i]];
-
-			if (object === undefined || object === null) {
-				// `object` is either `undefined` or `null` so we want to stop the loop, and
-				// if this is not the last bit of the path, and
-				// if it did't return `undefined`
-				// it would return `null` if `object` is `null`
-				// but we want `get({foo: null}, 'foo.bar')` to equal `undefined`, or the supplied value, not `null`
-				if (i !== pathArray.length - 1) {
-					return value;
-				}
-
-				break;
-			}
-		}
-
-		return object === undefined ? value : object;
-	},
-
-	set(object, path, value) {
-		if (!isObj(object) || typeof path !== 'string') {
-			return object;
-		}
-
-		const root = object;
-		const pathArray = getPathSegments(path);
-
-		for (let i = 0; i < pathArray.length; i++) {
-			const p = pathArray[i];
-
-			if (!isObj(object[p])) {
-				object[p] = {};
-			}
-
-			if (i === pathArray.length - 1) {
-				object[p] = value;
-			}
-
-			object = object[p];
-		}
-
-		return root;
-	},
-
-	delete(object, path) {
-		if (!isObj(object) || typeof path !== 'string') {
-			return false;
-		}
-
-		const pathArray = getPathSegments(path);
-
-		for (let i = 0; i < pathArray.length; i++) {
-			const p = pathArray[i];
-
-			if (i === pathArray.length - 1) {
-				delete object[p];
-				return true;
-			}
-
-			object = object[p];
-
-			if (!isObj(object)) {
-				return false;
-			}
-		}
-	},
-
-	has(object, path) {
-		if (!isObj(object) || typeof path !== 'string') {
-			return false;
-		}
-
-		const pathArray = getPathSegments(path);
-		if (pathArray.length === 0) {
-			return false;
-		}
-
-		// eslint-disable-next-line unicorn/no-for-loop
-		for (let i = 0; i < pathArray.length; i++) {
-			if (isObj(object)) {
-				if (!(pathArray[i] in object)) {
-					return false;
-				}
-
-				object = object[pathArray[i]];
-			} else {
-				return false;
-			}
-		}
-
-		return true;
+function isStringIndex(object, key) {
+	if (typeof key !== 'number' && Array.isArray(object)) {
+		const index = Number.parseInt(key, 10);
+		return Number.isInteger(index) && object[index] === object[key];
 	}
-};
+
+	return false;
+}
+
+function assertNotStringIndex(object, key) {
+	if (isStringIndex(object, key)) {
+		throw new Error('Cannot use string index');
+	}
+}
+
+function setProperty(object, path, value) {
+	if (!isObject(object) || typeof path !== 'string') {
+		return object;
+	}
+
+	const root = object;
+	const pathArray = getPathSegments(path);
+
+	for (let index = 0; index < pathArray.length; index++) {
+		const key = pathArray[index];
+
+		assertNotStringIndex(object, key);
+
+		if (index === pathArray.length - 1) {
+			object[key] = value;
+		} else if (!isObject(object[key])) {
+			object[key] = typeof pathArray[index + 1] === 'number' ? [] : {};
+		}
+
+		object = object[key];
+	}
+
+	return root;
+}
 
 var Lokalo = /** @class */ (function (_super) {
     __extends(Lokalo, _super);
@@ -606,7 +682,7 @@ var Lokalo = /** @class */ (function (_super) {
         return _this;
     }
     Lokalo.prototype.clearAll = function () {
-        var loggers = __spreadArray([], __read(this.loggers.values()));
+        var loggers = __spreadArray([], __read(this.loggers.values()), false);
         loggers.forEach(function (logger) { return logger.clear(); });
     };
     /**
@@ -614,10 +690,10 @@ var Lokalo = /** @class */ (function (_super) {
      */
     Lokalo.prototype.toObject = function () {
         var obj = {};
-        __spreadArray([], __read(this.loggers.values())).forEach(function (logger) {
+        __spreadArray([], __read(this.loggers.values()), false).forEach(function (logger) {
             var namespace = logger.namespace;
             var rows = logger.rows();
-            dotProp.set(obj, namespace, rows);
+            setProperty(obj, namespace, rows);
         });
         return obj;
     };
@@ -629,5 +705,5 @@ exports.DEFAULTS = DEFAULTS;
 exports.LOG_LEVELS = LOG_LEVELS;
 exports.Lokalo = Lokalo;
 exports.STYLES = STYLES;
-exports.default = defaultInstance;
+exports["default"] = defaultInstance;
 //# sourceMappingURL=index.js.map
